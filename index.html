@@ -1,0 +1,1534 @@
+  <!doctype html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TJ‑Suites™ GEN 4 Enhanced (Fixed)</title>
+
+    <!-- Three.js r128 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
+
+    <style>
+      :root{
+        --bg:#f4f5f7; --panel:#ffffff; --text:#1e1e1e; --muted:#667085; --border:#e4e7ec;
+        --btn:#f2f4f7; --btnh:#e9edf2; --accent:#e94560; --dark:#101828;
+        --xs:11px; --sm:13px; --md:14px; --lg:18px;
+      }
+      *{ box-sizing:border-box; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+      body{ margin:0; background:var(--bg); color:var(--text); overflow:hidden; }
+      #app{ display:flex; width:100vw; height:100vh; }
+      #left{ width:430px; background:var(--panel); border-right:1px solid var(--border); padding:14px; overflow:auto; }
+      #right{ flex:1; position:relative; display:flex; flex-direction:column; }
+
+      .card{ border:1px solid var(--border); border-radius:10px; background:var(--panel); padding:12px; margin-bottom:12px; }
+      .title{ font-size:22px; font-weight:800; line-height:1.1; }
+      .badge{ display:inline-block; font-size:var(--xs); padding:2px 8px; border-radius:999px; border:1px solid #cfe0f5; background:#eef3fb; color:#243b53; }
+      .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+      .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+      .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+      .input, select, textarea{ width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border); font-size:var(--sm); }
+      .btn{ padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--btn); font-size:var(--sm); cursor:pointer; }
+      .btn:hover{ background:var(--btnh); }
+      .btn.primary{ background:var(--dark); color:#fff; border-color:var(--dark); }
+      .btn.primary:hover{ background:#0b1220; }
+      .btn.accent{ background:var(--accent); color:#fff; border-color:var(--accent); }
+      .btn.accent:hover{ filter:brightness(0.95); }
+      .section{ font-weight:700; font-size:var(--sm); margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+      .tiny{ font-size:var(--xs); color:var(--muted); line-height:1.35; }
+      code{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:12px; }
+
+      #topbar{
+        height:46px; display:flex; align-items:center; justify-content:space-between;
+        padding:0 12px; background:linear-gradient(135deg,#16213e 0%, #0b1220 100%);
+        border-bottom:2px solid var(--accent); color:#fff;
+      }
+      #topbar .tools{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+      .tbtn{
+        border:1px solid #2a3a5e; background:#1a1a2e; color:#fff;
+        padding:7px 10px; border-radius:8px; cursor:pointer; font-size:12px;
+      }
+      .tbtn:hover{ background:#243b53; }
+      .tbtn.active{ outline:2px solid var(--accent); }
+
+      #viewportWrap{ position:relative; flex:1; background:#eaeef5; }
+      #viewport{ width:100%; height:100%; display:block; }
+      #status{ height:28px; border-top:1px solid var(--border); background:var(--panel); font-size:var(--xs); display:flex; align-items:center; padding:0 10px; color:#344054; }
+
+      #panelTabs{ display:flex; gap:8px; padding:8px; border-top:1px solid var(--border); background:var(--panel); flex-wrap:wrap; }
+      .tab{ padding:6px 10px; border:1px solid var(--border); border-radius:999px; background:#fff; cursor:pointer; font-size:12px; }
+      .tab.active{ border-color:var(--accent); color:var(--accent); }
+      #panelBody{ padding:10px; background:var(--panel); border-top:1px solid var(--border); height:280px; overflow:auto; }
+      .hidden{ display:none; }
+
+      table{ width:100%; border-collapse:collapse; font-size:12px; }
+      th,td{ border:1px solid var(--border); padding:6px; text-align:left; }
+      th{ background:#f8fafc; }
+
+      #assetGrid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px; }
+      .asset{ border:1px solid var(--border); border-radius:10px; padding:10px; cursor:pointer; background:#fff; }
+      .asset:hover{ border-color:#cbd5e1; background:#fbfdff; }
+      .thumb{ height:72px; border-radius:8px; background:linear-gradient(135deg,#e2e8f0,#f8fafc); display:flex; align-items:center; justify-content:center; color:#64748b; font-size:12px; border:1px dashed #cbd5e1; }
+      .asset .name{ font-weight:700; font-size:12px; margin-top:6px; }
+      .asset .cat{ font-size:11px; color:#64748b; }
+
+      #measureLabel{
+        position:absolute; left:10px; top:10px; z-index:10;
+        background:rgba(0,0,0,0.65); color:#fff; padding:6px 8px; border-radius:8px;
+        font-size:12px; display:none; pointer-events:none;
+      }
+      #hint{
+        position:absolute; right:10px; top:10px; z-index:10;
+        background:rgba(255,255,255,0.9); border:1px solid rgba(0,0,0,0.08);
+        padding:8px 10px; border-radius:10px; font-size:12px; color:#334155;
+        max-width:340px;
+      }
+      .msg{ padding:10px; border:1px solid var(--border); border-radius:10px; background:#fafafa; margin:8px 0; font-size:12px; }
+      .msg.ok{ background:#f5fff8; border-color:#cbe8d4; }
+      .msg.warn{ background:#fffaf0; border-color:#ffe29a; }
+      .msg.err{ background:#fff5f6; border-color:#f1b0b7; }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <aside id="left">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;">
+            <div>
+              <div class="title">TJ‑Suites™ GEN 4</div>
+              <div class="row" style="margin-top:6px;">
+                <span class="badge">Enhanced • Single‑File</span>
+                <span class="badge">Fixed Init • Default Render</span>
+              </div>
+            </div>
+            <span class="badge">Delmar, MD</span>
+          </div>
+          <div class="tiny" style="margin-top:10px;">
+            Units: UI uses <b>feet/inches</b>. 3D engine uses <b>meters</b>.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section">Project</div>
+          <div class="grid2">
+            <input id="projectName" class="input" placeholder="Project Name" />
+            <input id="clientName" class="input" placeholder="Client Name" />
+          </div>
+          <div class="grid2" style="margin-top:8px;">
+            <input id="dateField" class="input" />
+            <select id="modelType" class="input">
+              <option value="deck" selected>Deck</option>
+              <option value="kitchen">Kitchen (placeholder)</option>
+              <option value="bath">Bath (placeholder)</option>
+              <option value="outdoor">Outdoor Living (placeholder)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section">Deck Parameters</div>
+          <div class="grid2">
+            <div>
+              <div class="tiny">Length (ft)</div>
+              <input id="deckLength" class="input" type="number" min="8" max="60" value="16" />
+            </div>
+            <div>
+              <div class="tiny">Width (ft)</div>
+              <input id="deckWidth" class="input" type="number" min="6" max="40" value="12" />
+            </div>
+          </div>
+          <div class="grid2" style="margin-top:8px;">
+            <div>
+              <div class="tiny">Height (ft)</div>
+              <input id="deckHeight" class="input" type="number" min="0.5" max="12" step="0.5" value="3" />
+            </div>
+            <div>
+              <div class="tiny">Stair Opening (ft)</div>
+              <input id="stairOpening" class="input" type="number" min="0" max="20" value="4" />
+            </div>
+          </div>
+          <div class="grid2" style="margin-top:8px;">
+            <div>
+              <div class="tiny">Stairs count</div>
+              <input id="stairCount" class="input" type="number" min="0" max="12" value="3" />
+            </div>
+            <div>
+              <div class="tiny">Stair width (ft)</div>
+              <input id="stairWidth" class="input" type="number" min="2" max="12" value="4" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button class="btn primary" id="btnUpdate3D">Update 3D</button>
+            <button class="btn" id="btnReset">Reset View</button>
+          </div>
+          <div class="tiny" style="margin-top:8px;">
+            Default deck renders on load. Use tools in the top bar (Select/Move/Measure).
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section">Quick Add (procedural)</div>
+          <div class="grid2">
+            <button class="btn" id="btnAddPost">Add Post</button>
+            <button class="btn" id="btnAddBeam">Add Beam</button>
+          </div>
+          <div class="grid2" style="margin-top:8px;">
+            <button class="btn" id="btnAddRailing">Add Rail</button>
+            <button class="btn" id="btnAddBox">Add Box</button>
+          </div>
+          <div class="tiny" style="margin-top:8px;">
+            Add places at center and snaps to ground (or deck top when enabled).
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section">Export</div>
+          <div class="grid2">
+            <button class="btn" id="btnExportJson">Export SYSTEM_EXPORT (JSON)</button>
+            <button class="btn" id="btnExportSummary">Export Summary (CSV)</button>
+          </div>
+          <div class="grid3" style="margin-top:8px;">
+            <button class="btn" id="btnExportTakeoff">Takeoff (CSV)</button>
+            <button class="btn" id="btnExportGLB">Export GLB</button>
+            <button class="btn" id="btnLoadJson">Load JSON</button>
+          </div>
+          <input id="fileInput" type="file" accept=".json" class="hidden" />
+        </div>
+
+        <div class="card">
+          <div class="section">Flow / Job Wiring (optional)</div>
+          <div class="tiny">Paste a Power Automate HTTP trigger URL to POST the SYSTEM_EXPORT JSON.</div>
+          <input id="flowUrl" class="input" placeholder="https://.../invoke?api-version=1" />
+          <div class="row" style="margin-top:8px;">
+            <button class="btn" id="btnSendFlow">Send to Flow</button>
+            <button class="btn" id="btnUseAssets">Load Placeholder Assets</button>
+          </div>
+        </div>
+      </aside>
+
+      <main id="right">
+        <div id="topbar">
+          <div class="row" style="gap:10px;">
+            <b><span style="color:var(--accent);">TJ‑Suites™</span> GEN 4</b>
+            <span class="badge" id="envBadge">Standalone • Flow Ready</span>
+          </div>
+          <div class="tools">
+            <button class="tbtn active" data-tool="select" id="toolSelect">Select</button>
+            <button class="tbtn" data-tool="move" id="toolMove">Move</button>
+            <button class="tbtn" data-tool="measure" id="toolMeasure">Measure</button>
+            <button class="tbtn" id="btnSnap">Snap ON</button>
+            <button class="tbtn active" id="btnQuality">Presentation</button>
+            <button class="tbtn" id="btnHdr">HDR (hook)</button>
+            <button class="tbtn" id="btnRecalc">Recalc</button>
+          </div>
+        </div>
+
+        <div id="viewportWrap">
+          <canvas id="viewport"></canvas>
+          <div id="measureLabel"></div>
+          <div id="hint">
+            <b>Tips</b><br/>
+            • Select: click object<br/>
+            • Move: drag selected (hold Shift = faster)<br/>
+            • Measure: click-drag on ground plane
+          </div>
+        </div>
+
+        <div id="panelTabs">
+          <div class="tab active" data-tab="inspector">Inspector</div>
+          <div class="tab" data-tab="validation">Validation</div>
+          <div class="tab" data-tab="takeoff">Takeoff</div>
+          <div class="tab" data-tab="cost">Cost</div>
+          <div class="tab" data-tab="proposal">Proposal</div>
+          <div class="tab" data-tab="assets">Assets</div>
+          <div class="tab" data-tab="compiler">Compiler</div>
+        </div>
+
+        <div id="panelBody">
+          <div id="tab-inspector">
+            <div class="section">Inspector</div>
+            <div class="tiny">Selection details + quick delete.</div>
+            <div class="card" style="margin-top:10px;">
+              <div class="row" style="justify-content:space-between;">
+                <b>Selection</b>
+                <span class="badge" id="selName">none</span>
+              </div>
+              <div id="selProps" class="tiny" style="margin-top:8px;">—</div>
+              <div class="row" style="margin-top:10px;">
+                <button class="btn" id="btnDeleteSel">Delete Selected</button>
+                <button class="btn" id="btnFocusSel">Focus</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="tab-validation" class="hidden">
+            <div class="section">Validation</div>
+            <div class="row">
+              <button class="btn" id="btnValidate">Run Validation</button>
+              <button class="btn" id="btnAutoFix">AutoFix (safe)</button>
+            </div>
+            <div id="validationOut" style="margin-top:10px;"></div>
+          </div>
+
+          <div id="tab-takeoff" class="hidden">
+            <div class="section">Takeoff</div>
+            <div id="takeoffOut"></div>
+          </div>
+
+          <div id="tab-cost" class="hidden">
+            <div class="section">Cost</div>
+            <div class="grid2">
+              <input id="taxRate" class="input" type="number" value="6" placeholder="Tax %" />
+              <input id="marginRate" class="input" type="number" value="20" placeholder="Margin %" />
+            </div>
+            <div class="row" style="margin-top:8px;">
+              <button class="btn" id="btnCostExport">Export Cost CSV</button>
+            </div>
+            <div id="costOut" style="margin-top:10px;"></div>
+          </div>
+
+          <div id="tab-proposal" class="hidden">
+            <div class="section">Proposal</div>
+            <div class="row">
+              <button class="btn primary" id="btnProposalGen">Generate</button>
+              <button class="btn" id="btnProposalJson">Export JSON</button>
+              <button class="btn" id="btnProposalCsv">Export CSV</button>
+              <button class="btn accent" id="btnProposalPng">Render PNG</button>
+            </div>
+            <div id="proposalOut" style="margin-top:10px;"></div>
+          </div>
+
+          <div id="tab-assets" class="hidden">
+            <div class="section">Assets (optional)</div>
+            <div class="tiny">Placeholder catalog until Flow provides real GLB URLs.</div>
+            <div class="grid2" style="margin-top:8px;">
+              <input id="assetSearch" class="input" placeholder="Search..." />
+              <select id="assetFilter" class="input">
+                <option value="all">All</option>
+                <option value="structure">Structure</option>
+                <option value="kitchen">Kitchen</option>
+                <option value="bath">Bath</option>
+                <option value="outdoor">Outdoor</option>
+              </select>
+            </div>
+            <div id="assetGrid" style="margin-top:10px;"></div>
+          </div>
+
+          <div id="tab-compiler" class="hidden">
+            <div class="section">Compiler</div>
+            <div class="tiny">SYSTEM_EXPORT JSON output (safe even before viewer init).</div>
+            <div class="row" style="margin-top:8px;">
+              <button class="btn" id="btnCopyExport">Copy SYSTEM_EXPORT JSON</button>
+            </div>
+            <textarea id="compilerOut" class="input" style="height:150px; margin-top:10px;" spellcheck="false"></textarea>
+          </div>
+        </div>
+
+        <div id="status">Booting…</div>
+      </main>
+    </div>
+
+    <script>
+      /***********************
+       * Utilities
+       ***********************/
+      const U = {
+        nowDate(){
+          const d = new Date();
+          const mm = String(d.getMonth()+1).padStart(2,"0");
+          const dd = String(d.getDate()).padStart(2,"0");
+          return d.getFullYear()+"-"+mm+"-"+dd;
+        },
+        dlText(filename, text, mime="text/plain"){
+          const blob = new Blob([text], {type:mime});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url; a.download = filename;
+          document.body.appendChild(a); a.click(); a.remove();
+          URL.revokeObjectURL(url);
+        },
+        dlDataUrl(filename, dataUrl){
+          const a = document.createElement("a");
+          a.href = dataUrl; a.download = filename;
+          document.body.appendChild(a); a.click(); a.remove();
+        },
+        ft(v){ return (Number(v)||0) * 0.3048; },
+        inch(v){ return (Number(v)||0) * 0.0254; },
+        fmtMoney(n){ return "$" + (Number(n)||0).toFixed(2); },
+        setStatus(msg){ document.getElementById("status").textContent = msg; }
+      };
+      function csvSafe(v){
+        const s = String(v ?? "");
+        if(/[,"\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+        return s;
+      }
+
+      /***********************
+       * App State
+       ***********************/
+      const AppState = {
+        tool: "select",
+        snap: true,
+        quality: "presentation",
+        selection: null,
+        dragging: false,
+        catalogSource: "defaults",
+        assets: [],
+        proposal: null,
+        takeoff: null,
+        cost: null
+      };
+
+      /***********************
+       * Materials
+       ***********************/
+      const Materials = (() => {
+        const m = {};
+        function std(color, rough=0.75, metal=0.0){
+          return new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
+        }
+        function init(){
+          m.deck_Cedar = std(0xbba98b, 0.78, 0.0);
+          m.deck_PT    = std(0xb7b7b7, 0.68, 0.0);
+          m.railing    = std(0xcfd8dc, 0.45, 0.0);
+          m.post       = std(0xcfd8dc, 0.45, 0.0);
+          m.beam       = std(0xcfcfcf, 0.75, 0.0);
+          m.concrete   = std(0xa9b1b7, 0.85, 0.0);
+          m.ground     = std(0xe7eaee, 0.95, 0.0);
+          m.wall       = std(0xa7b59a, 0.85, 0.0);
+          m.trim       = std(0xf1f5f9, 0.65, 0.0);
+          m.selection  = new THREE.MeshStandardMaterial({ color:0xffe08a, roughness:0.6, metalness:0.0, transparent:true, opacity:0.25 });
+        }
+        function get(name){ return m[name] || std(0xffffff, 0.8, 0.0); }
+        return { init, get };
+      })();
+
+      /***********************
+       * Export (GUARDED)
+       ***********************/
+      const Export = {
+        canonicalObject(obj){
+          return Object.assign({
+            objectType: "unknown",
+            x:0,y:0,z:0, width:0,height:0,depth:0,
+            material:"", ruleSet:"", costCode:"", notes:""
+          }, obj||{});
+        },
+        systemExport(){
+          const meta = {
+            schemaVersion: "4.1",
+            app: "TJ-Suites GEN 4 Enhanced (Fixed)",
+            projectName: (document.getElementById("projectName")?.value||"").trim(),
+            clientName: (document.getElementById("clientName")?.value||"").trim(),
+            date: (document.getElementById("dateField")?.value||U.nowDate()),
+            modelType: document.getElementById("modelType")?.value || "deck",
+            units: { ui:"ft/in", engine:"m" }
+          };
+
+          // Guard: if viewer not ready, return empty objects instead of crashing.
+          if(!Viewer.scene){
+            return { meta, objects: [] };
+          }
+
+          const objects = [];
+          Viewer.scene.traverse(o=>{
+            if(o.isMesh && o.userData && o.userData.exportable){
+              const e = Object.assign({}, o.userData.exportable);
+              e.x = o.position.x; e.y = o.position.y; e.z = o.position.z;
+              objects.push(e);
+            }
+          });
+          return { meta, objects };
+        },
+        exportSystemJson(){
+          const data = Export.systemExport();
+          U.dlText("SYSTEM_EXPORT.json", JSON.stringify(data, null, 2), "application/json");
+          U.setStatus("Exported SYSTEM_EXPORT.json");
+          UI.refreshCompiler();
+        },
+        exportSummaryCsv(){
+          const data = Export.systemExport();
+          const count = data.objects.length;
+          const lines = [
+            "Project,Client,Date,ModelType,ObjectCount",
+            csvSafe(data.meta.projectName)+","+csvSafe(data.meta.clientName)+","+csvSafe(data.meta.date)+","+csvSafe(data.meta.modelType)+","+count
+          ];
+          U.dlText("summary.csv", lines.join("\n"), "text/csv");
+          U.setStatus("Exported summary.csv");
+        },
+        exportTakeoffCsv(){
+          const rows = Takeoff.build();
+          const head = ["objectType","material","costCode","qty","uom","unitCost","lineCost"];
+          const lines = [head.join(",")].concat(rows.map(r=>{
+            return [csvSafe(r.objectType),csvSafe(r.material),csvSafe(r.costCode),r.qty,csvSafe(r.uom),r.unitCost,r.lineCost].join(",");
+          }));
+          U.dlText("takeoff.csv", lines.join("\n"), "text/csv");
+          U.setStatus("Exported takeoff.csv");
+        },
+        exportGLB(){
+          if(!Viewer.scene){ alert("Viewer not ready"); return; }
+          const exporter = new THREE.GLTFExporter();
+          exporter.parse(Viewer.scene, gltf=>{
+            const blob = new Blob([gltf], { type: "model/gltf-binary" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url; a.download = "scene.glb";
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            U.setStatus("Exported scene.glb");
+          }, { binary:true });
+        }
+      };
+
+      /***********************
+       * Viewer
+       ***********************/
+      const Viewer = {
+        renderer:null, scene:null, camera:null, controls:null,
+        raycaster:new THREE.Raycaster(),
+        mouse:new THREE.Vector2(),
+        ground:null,
+        root:null,
+        _selectionOutline:null,
+
+        init(){
+          Materials.init();
+
+          const canvas = document.getElementById("viewport");
+          this.renderer = new THREE.WebGLRenderer({
+            canvas, antialias:true, alpha:false, preserveDrawingBuffer:true
+          });
+          this.renderer.setPixelRatio(window.devicePixelRatio);
+
+          // Color/lighting realism
+          this.renderer.outputEncoding = THREE.sRGBEncoding;
+          this.renderer.physicallyCorrectLights = true;
+          this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          this.renderer.toneMappingExposure = 1.05;
+
+          this.renderer.shadowMap.enabled = true;
+          this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+          this.scene = new THREE.Scene();
+          this.scene.background = new THREE.Color(0xf4f5f7);
+
+          this.camera = new THREE.PerspectiveCamera(45, 1, 0.05, 600);
+          this.camera.position.set(9, 6.5, 9);
+
+          this.controls = new THREE.OrbitControls(this.camera, canvas);
+          this.controls.enableDamping = true;
+          this.controls.target.set(0, 1.1, 0);
+
+          this._addLights();
+          this._addStudio();
+          this.root = new THREE.Group();
+          this.root.name = "Root";
+          this.scene.add(this.root);
+
+          this.resize();
+          window.addEventListener("resize", ()=>this.resize());
+
+          canvas.addEventListener("pointerdown", (e)=>this.onPointerDown(e));
+          canvas.addEventListener("pointermove", (e)=>this.onPointerMove(e));
+          canvas.addEventListener("pointerup", (e)=>this.onPointerUp(e));
+          canvas.addEventListener("contextmenu", (e)=>e.preventDefault());
+
+          this.updateScene();          // DEFAULT RENDER ON LOAD
+          this.animate();
+        },
+
+        _addLights(){
+          const hemi = new THREE.HemisphereLight(0xffffff, 0xdfe6ee, 0.55);
+          hemi.position.set(0, 40, 0);
+          this.scene.add(hemi);
+
+          const dir = new THREE.DirectionalLight(0xffffff, 3.1);
+          dir.position.set(14, 20, 12);
+          dir.castShadow = true;
+          dir.shadow.mapSize.set(2048, 2048);
+          dir.shadow.camera.near = 0.5;
+          dir.shadow.camera.far = 120;
+          dir.shadow.camera.left = -30;
+          dir.shadow.camera.right = 30;
+          dir.shadow.camera.top = 30;
+          dir.shadow.camera.bottom = -30;
+          dir.shadow.bias = -0.0002;
+          dir.shadow.normalBias = 0.02;
+          this.scene.add(dir);
+
+          const fill = new THREE.DirectionalLight(0xffffff, 0.6);
+          fill.position.set(-10, 10, -6);
+          this.scene.add(fill);
+        },
+
+        _addStudio(){
+          const ground = new THREE.Mesh(new THREE.PlaneGeometry(300,300), Materials.get("ground"));
+          ground.rotation.x = -Math.PI/2;
+          ground.receiveShadow = true;
+          ground.name = "Ground";
+          this.ground = ground;
+          this.scene.add(ground);
+
+          const wall = new THREE.Mesh(new THREE.PlaneGeometry(240, 80), Materials.get("wall"));
+          wall.position.set(0, 40, -60);
+          wall.receiveShadow = true;
+          wall.name = "BackdropWall";
+          this.scene.add(wall);
+
+          const grid = new THREE.GridHelper(60, 60, 0x93a4b8, 0xcbd5e1);
+          grid.position.y = 0.001;
+          grid.material.opacity = 0.35;
+          grid.material.transparent = true;
+          this.scene.add(grid);
+        },
+
+        setQuality(mode){
+          AppState.quality = mode;
+          this.renderer.toneMappingExposure = (mode==="presentation") ? 1.05 : 0.95;
+          U.setStatus("Quality: " + mode);
+        },
+
+        tryHDR(){
+          U.setStatus("HDR hook: add your .hdr URL in code later (Flow/SharePoint).");
+          alert("HDR is a hook in this single-file build.\nNext step: load a real .hdr URL and set scene.environment.");
+        },
+
+        resize(){
+          const wrap = document.getElementById("viewportWrap");
+          const w = wrap.clientWidth;
+          const h = wrap.clientHeight;
+          this.renderer.setSize(w,h,false);
+          this.camera.aspect = w/h;
+          this.camera.updateProjectionMatrix();
+          this.renderFrame();
+        },
+
+        animate(){
+          requestAnimationFrame(()=>this.animate());
+          this.controls.update();
+          this.renderFrame();
+        },
+
+        renderFrame(){
+          this.renderer.render(this.scene, this.camera);
+        },
+
+        resetView(){
+          this.camera.position.set(9, 6.5, 9);
+          this.controls.target.set(0, 1.1, 0);
+          this.controls.update();
+          this.renderFrame();
+        },
+
+        focusOn(object){
+          if(!object) return;
+          const box = new THREE.Box3().setFromObject(object);
+          const size = new THREE.Vector3(); box.getSize(size);
+          const center = new THREE.Vector3(); box.getCenter(center);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const dist = maxDim * 1.6 + 2.5;
+          this.controls.target.copy(center);
+          this.camera.position.set(center.x + dist, center.y + dist*0.6, center.z + dist);
+          this.controls.update();
+        },
+
+        clearRoot(){
+          while(this.root.children.length) this.root.remove(this.root.children[0]);
+        },
+
+        updateScene(){
+          this.clearRoot();
+          const model = document.getElementById("modelType").value;
+
+          if(model === "deck"){
+            BuildProcedural.buildDeck(this.root, UI.readDeckParams());
+          }else{
+            const slab = new THREE.Mesh(new THREE.BoxGeometry(6,0.2,4), Materials.get("trim"));
+            slab.position.set(0,0.1,0);
+            slab.castShadow = true; slab.receiveShadow = true;
+            slab.userData.exportable = Export.canonicalObject({
+              objectType:"placeholder_model",
+              x:slab.position.x,y:slab.position.y,z:slab.position.z,
+              width:6,height:0.2,depth:4,
+              material:"Trim", ruleSet:"Placeholder", costCode:"PH"
+            });
+            this.root.add(slab);
+          }
+
+          Pipeline.run();
+          UI.updateSelection();
+          U.setStatus("3D updated");
+        },
+
+        screenToRay(e){
+          const rect = this.renderer.domElement.getBoundingClientRect();
+          const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          this.mouse.set(x,y);
+          this.raycaster.setFromCamera(this.mouse, this.camera);
+        },
+
+        pick(e){
+          this.screenToRay(e);
+          const hits = this.raycaster.intersectObjects(this.root.children, true);
+          if(!hits.length) return null;
+          for(const h of hits){
+            if(h.object && h.object.isMesh && h.object.userData && h.object.userData.exportable) return h;
+          }
+          return hits[0] || null;
+        },
+
+        getGroundPoint(e){
+          this.screenToRay(e);
+          const plane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+          const p = new THREE.Vector3();
+          this.raycaster.ray.intersectPlane(plane, p);
+          return p;
+        },
+
+        getDeckTopY(){
+          // Approx: find first deck board and use its top surface
+          let topY = 0;
+          this.root.traverse(o=>{
+            if(o.isMesh && o.name === "DeckBoard"){
+              const h = o.geometry.parameters.height || 0;
+              topY = Math.max(topY, o.position.y + h/2);
+            }
+          });
+          return topY;
+        },
+
+        onPointerDown(e){
+          if(AppState.tool === "select"){
+            const hit = this.pick(e);
+            if(hit && hit.object){
+              AppState.selection = hit.object;
+              UI.updateSelection();
+              U.setStatus("Selected: " + (hit.object.name || hit.object.userData.exportable?.objectType || "mesh"));
+            }else{
+              AppState.selection = null;
+              UI.updateSelection();
+            }
+          } else if(AppState.tool === "measure"){
+            Measure.start(e);
+          } else if(AppState.tool === "move"){
+            if(!AppState.selection) return;
+            AppState.dragging = true;
+          }
+        },
+
+        onPointerMove(e){
+          if(AppState.tool === "measure"){
+            Measure.move(e);
+            return;
+          }
+          if(AppState.tool === "move" && AppState.dragging && AppState.selection){
+            const p = this.getGroundPoint(e);
+            const sel = AppState.selection;
+            const speed = e.shiftKey ? 1.0 : 0.25;
+            sel.position.x = p.x * speed + sel.position.x * (1-speed);
+            sel.position.z = p.z * speed + sel.position.z * (1-speed);
+
+            if(AppState.snap){
+              // Snap Y to ground or deck top
+              const deckTop = this.getDeckTopY();
+              const h = sel.geometry?.parameters?.height || (sel.userData?.exportable?.height||0.2);
+              const targetY = Math.max(0, deckTop) + h/2;
+              sel.position.y = targetY;
+            }
+            UI.updateSelection();
+            UI.refreshCompiler();
+          }
+        },
+
+        onPointerUp(){
+          if(AppState.tool === "measure"){
+            Measure.end();
+          }
+          if(AppState.tool === "move"){
+            AppState.dragging = false;
+          }
+        },
+
+        async capturePng({width=2560,height=1440}={}){
+          const r = this.renderer;
+          const oldSize = new THREE.Vector2();
+          r.getSize(oldSize);
+          const oldPR = r.getPixelRatio();
+
+          r.setPixelRatio(1);
+          r.setSize(width, height, false);
+          this.renderFrame();
+
+          const dataUrl = r.domElement.toDataURL("image/png");
+
+          r.setPixelRatio(oldPR);
+          r.setSize(oldSize.x, oldSize.y, false);
+          this.renderFrame();
+          return dataUrl;
+        }
+      };
+
+      /***********************
+       * Procedural Pro Deck
+       ***********************/
+      const BuildProcedural = (() => {
+        function makeBox(w,h,d, mat){
+          const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          return mesh;
+        }
+
+        function buildDeck(target, params){
+          const L = U.ft(params.lengthFt);
+          const W = U.ft(params.widthFt);
+          const H = U.ft(params.heightFt);
+
+          const deckThk = U.inch(1.375);
+          const fasciaThk = U.inch(1.0);
+          const boardW = U.inch(5.5);
+          const gap = U.inch(0.125);
+
+          const group = new THREE.Group();
+          group.name = "DeckAssembly";
+          target.add(group);
+
+          // Deck boards
+          const usableW = W;
+          const count = Math.max(1, Math.floor((usableW + gap) / (boardW + gap)));
+          const zMin = -W/2;
+          for(let i=0;i<count;i++){
+            const z = zMin + i*(boardW+gap) + boardW/2;
+            const b = makeBox(L, deckThk, boardW, Materials.get("deck_Cedar"));
+            b.position.set(0, H + deckThk/2, z);
+            b.name = "DeckBoard";
+            b.userData.exportable = Export.canonicalObject({
+              objectType:"deck_board",
+              x:b.position.x,y:b.position.y,z:b.position.z,
+              width:L,height:deckThk,depth:boardW,
+              material:"Cedar", ruleSet:"Deck.Standard", costCode:"DECK_BRDS"
+            });
+            group.add(b);
+          }
+
+          // Fascia
+          const front = makeBox(L + fasciaThk*2, deckThk, fasciaThk, Materials.get("deck_PT"));
+          front.position.set(0, H + deckThk/2, W/2 + fasciaThk/2); front.name="FasciaFront"; group.add(front);
+
+          const back = makeBox(L + fasciaThk*2, deckThk, fasciaThk, Materials.get("deck_PT"));
+          back.position.set(0, H + deckThk/2, -W/2 - fasciaThk/2); back.name="FasciaBack"; group.add(back);
+
+          const left = makeBox(fasciaThk, deckThk, W, Materials.get("deck_PT"));
+          left.position.set(-L/2 - fasciaThk/2, H + deckThk/2, 0); left.name="FasciaLeft"; group.add(left);
+
+          const right = makeBox(fasciaThk, deckThk, W, Materials.get("deck_PT"));
+          right.position.set(L/2 + fasciaThk/2, H + deckThk/2, 0); right.name="FasciaRight"; group.add(right);
+
+          // Rails + posts
+          buildRails(group, {L,W,H, stairOpeningFt:params.stairOpeningFt});
+
+          // Stairs
+          buildStairs(group, {W,H,fasciaThk, stairCount:params.stairCount, stairWidthFt:params.stairWidthFt});
+
+          // Root export record
+          group.userData.exportable = Export.canonicalObject({
+            objectType:"deck",
+            x:0,y:H + deckThk/2,z:0,
+            width:L,height:deckThk,depth:W,
+            material:"Cedar", ruleSet:"Deck.Standard", costCode:"DECK"
+          });
+
+          // Piers (visual)
+          const pier = makeBox(U.inch(16), U.inch(12), U.inch(16), Materials.get("concrete"));
+          pier.position.set(-L/3, U.inch(6), -W/4); pier.name="Pier"; group.add(pier);
+          const pier2 = pier.clone(); pier2.position.set(L/3, U.inch(6), -W/4); group.add(pier2);
+
+          return group;
+        }
+
+        function buildRails(group, {L,W,H, stairOpeningFt}){
+          const postSize = U.inch(5.5);
+          const postH = U.inch(42);
+          const railY = H + U.inch(36);
+          const railThk = U.inch(1.5);
+          const balThk = U.inch(1.25);
+          const balH = U.inch(32);
+          const opening = U.ft(stairOpeningFt||4);
+
+          const posts = [
+            {x:-L/2, z:-W/2},
+            {x: L/2, z:-W/2},
+            {x:-L/2, z: W/2},
+            {x: L/2, z: W/2},
+            {x: 0,   z: W/2}
+          ];
+          posts.forEach((p, idx)=>{
+            const post = makeBox(postSize, postH, postSize, Materials.get("post"));
+            post.position.set(p.x, H + postH/2, p.z);
+            post.name = "Post_"+idx;
+            post.userData.exportable = Export.canonicalObject({
+              objectType:"post",
+              x:post.position.x,y:post.position.y,z:post.position.z,
+              width:postSize,height:postH,depth:postSize,
+              material:"PVC", ruleSet:"Rail.Standard", costCode:"POST"
+            });
+            group.add(post);
+          });
+
+          // Rails: back + sides
+          addRail(group, {cx:0, cz:-W/2, w:L, d:railThk, y:railY, name:"RailBack"});
+          addRail(group, {cx:-L/2, cz:0, w:railThk, d:W, y:railY, name:"RailLeft"});
+          addRail(group, {cx:L/2, cz:0, w:railThk, d:W, y:railY, name:"RailRight"});
+
+          // Front split around opening
+          const seg = Math.max(0.001, (L - opening)/2);
+          addRail(group, {cx:-(opening/2 + seg/2), cz:W/2, w:seg, d:railThk, y:railY, name:"RailFrontL"});
+          addRail(group, {cx:(opening/2 + seg/2), cz:W/2, w:seg, d:railThk, y:railY, name:"RailFrontR"});
+
+          // Balusters (approx)
+          const gap = U.inch(4);
+          const y = H + U.inch(6) + balH/2;
+
+          placeBalustersX(group, {x0:-L/2+U.inch(6), x1:-opening/2-U.inch(6), z:W/2-U.inch(1.5), y, gap, balThk, balH});
+          placeBalustersX(group, {x0:opening/2+U.inch(6), x1:L/2-U.inch(6), z:W/2-U.inch(1.5), y, gap, balThk, balH});
+          placeBalustersX(group, {x0:-L/2+U.inch(6), x1:L/2-U.inch(6), z:-W/2+U.inch(1.5), y, gap, balThk, balH});
+          placeBalustersZ(group, {z0:-W/2+U.inch(6), z1:W/2-U.inch(6), x:-L/2+U.inch(1.5), y, gap, balThk, balH});
+          placeBalustersZ(group, {z0:-W/2+U.inch(6), z1:W/2-U.inch(6), x:L/2-U.inch(1.5), y, gap, balThk, balH});
+        }
+
+        function addRail(group, {cx,cz,w,d,y,name}){
+          const rail = makeBox(w, U.inch(1.5), d, Materials.get("railing"));
+          rail.position.set(cx, y, cz);
+          rail.name = name || "Rail";
+          rail.userData.exportable = Export.canonicalObject({
+            objectType:"railing",
+            x:rail.position.x,y:rail.position.y,z:rail.position.z,
+            width:w,height:U.inch(1.5),depth:d,
+            material:"PVC", ruleSet:"Rail.Standard", costCode:"RAIL"
+          });
+          group.add(rail);
+        }
+
+        function placeBalustersX(group, {x0,x1,z,y,gap,balThk,balH}){
+          const len = Math.abs(x1-x0);
+          const count = Math.max(2, Math.floor(len / gap));
+          for(let i=0;i<=count;i++){
+            const t = i/count;
+            const x = x0 + (x1-x0)*t;
+            const b = makeBox(balThk, balH, balThk, Materials.get("railing"));
+            b.position.set(x,y,z);
+            b.name="Baluster";
+            b.userData.exportable = Export.canonicalObject({
+              objectType:"baluster",
+              x:b.position.x,y:b.position.y,z:b.position.z,
+              width:balThk,height:balH,depth:balThk,
+              material:"PVC", ruleSet:"Rail.Standard", costCode:"BAL"
+            });
+            group.add(b);
+          }
+        }
+
+        function placeBalustersZ(group, {z0,z1,x,y,gap,balThk,balH}){
+          const len = Math.abs(z1-z0);
+          const count = Math.max(2, Math.floor(len / gap));
+          for(let i=0;i<=count;i++){
+            const t = i/count;
+            const z = z0 + (z1-z0)*t;
+            const b = makeBox(balThk, balH, balThk, Materials.get("railing"));
+            b.position.set(x,y,z);
+            b.name="Baluster";
+            b.userData.exportable = Export.canonicalObject({
+              objectType:"baluster",
+              x:b.position.x,y:b.position.y,z:b.position.z,
+              width:balThk,height:balH,depth:balThk,
+              material:"PVC", ruleSet:"Rail.Standard", costCode:"BAL"
+            });
+            group.add(b);
+          }
+        }
+
+        function buildStairs(group, {W,H,fasciaThk, stairCount, stairWidthFt}){
+          const rises = Math.max(0, parseInt(stairCount||0,10));
+          if(!rises) return;
+
+          const stairW = U.ft(stairWidthFt||4);
+          const run = U.inch(11);
+          const treadThk = U.inch(1.5);
+
+          const deckFrontZ = W/2 + fasciaThk;
+          const totalRise = H;
+          const rise = totalRise / rises;
+
+          for(let i=0;i<rises;i++){
+            const y = H - (i+0.5)*rise;
+            const z = deckFrontZ + (i+0.5)*run;
+            const tread = makeBox(stairW, treadThk, run, Materials.get("deck_PT"));
+            tread.position.set(0, y, z);
+            tread.name = "StairTread";
+            tread.userData.exportable = Export.canonicalObject({
+              objectType:"stair_tread",
+              x:tread.position.x,y:tread.position.y,z:tread.position.z,
+              width:stairW,height:treadThk,depth:run,
+              material:"PT", ruleSet:"Stairs.Standard", costCode:"TREAD"
+            });
+            group.add(tread);
+          }
+
+          // Stringers (visual)
+          const strW = U.inch(1.5);
+          const strH = H + U.inch(6);
+          const strL = run*rises + U.inch(8);
+          const left = makeBox(strW, strH, strL, Materials.get("beam"));
+          left.position.set(-stairW/2 + strW/2, strH/2, deckFrontZ + strL/2);
+          left.name="StringerL"; group.add(left);
+          const right = left.clone();
+          right.position.x = stairW/2 - strW/2;
+          right.name="StringerR"; group.add(right);
+        }
+
+        return { buildDeck, makeBox };
+      })();
+
+      /***********************
+       * Add Objects (restored)
+       ***********************/
+      const AddObject = {
+        add(type){
+          if(!Viewer.root){ return; }
+          const deckTop = Viewer.getDeckTopY();
+          const yBase = AppState.snap ? deckTop : 0;
+
+          let mesh=null;
+          if(type==="post"){
+            mesh = new THREE.Mesh(new THREE.BoxGeometry(U.inch(5.5), U.inch(42), U.inch(5.5)), Materials.get("post"));
+            mesh.name="Post_Added";
+            mesh.position.set(0, yBase + (U.inch(42)/2), 0);
+            mesh.castShadow=true; mesh.receiveShadow=true;
+            mesh.userData.exportable = Export.canonicalObject({ objectType:"post", width:U.inch(5.5), height:U.inch(42), depth:U.inch(5.5), material:"PVC", ruleSet:"Rail.Standard", costCode:"POST" });
+          } else if(type==="beam"){
+            mesh = new THREE.Mesh(new THREE.BoxGeometry(U.ft(8), U.inch(7.25), U.inch(3.5)), Materials.get("beam"));
+            mesh.name="Beam_Added";
+            mesh.position.set(0, yBase + (U.inch(7.25)/2), 0);
+            mesh.castShadow=true; mesh.receiveShadow=true;
+            mesh.userData.exportable = Export.canonicalObject({ objectType:"beam", width:U.ft(8), height:U.inch(7.25), depth:U.inch(3.5), material:"PT", ruleSet:"Frame.Standard", costCode:"BEAM" });
+          } else if(type==="railing"){
+            mesh = new THREE.Mesh(new THREE.BoxGeometry(U.ft(6), U.inch(1.5), U.inch(1.5)), Materials.get("railing"));
+            mesh.name="Rail_Added";
+            mesh.position.set(0, yBase + U.inch(36), 0);
+            mesh.castShadow=true; mesh.receiveShadow=true;
+            mesh.userData.exportable = Export.canonicalObject({ objectType:"railing", width:U.ft(6), height:U.inch(1.5), depth:U.inch(1.5), material:"PVC", ruleSet:"Rail.Standard", costCode:"RAIL" });
+          } else {
+            mesh = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), Materials.get("trim"));
+            mesh.name="Box_Added";
+            mesh.position.set(0, yBase + 0.5, 0);
+            mesh.castShadow=true; mesh.receiveShadow=true;
+            mesh.userData.exportable = Export.canonicalObject({ objectType:"box", width:1, height:1, depth:1, material:"Trim", ruleSet:"Misc", costCode:"MISC" });
+          }
+
+          Viewer.root.add(mesh);
+          AppState.selection = mesh;
+          UI.updateSelection();
+          Pipeline.run();
+          U.setStatus("Added: " + type);
+        }
+      };
+
+      /***********************
+       * Measure tool
+       ***********************/
+      const Measure = (() => {
+        let active=false;
+        let p0=null;
+        const label = document.getElementById("measureLabel");
+
+        function start(e){
+          active=true;
+          p0 = Viewer.getGroundPoint(e);
+          label.style.display = "block";
+          label.textContent = "0.00 ft";
+        }
+        function move(e){
+          if(!active || !p0) return;
+          const p1 = Viewer.getGroundPoint(e);
+          const distM = p0.distanceTo(p1);
+          const distFt = distM / 0.3048;
+          label.textContent = distFt.toFixed(2) + " ft";
+        }
+        function end(){
+          active=false;
+          p0=null;
+          label.style.display = "none";
+        }
+        return { start, move, end };
+      })();
+
+      /***********************
+       * Takeoff + Cost
+       ***********************/
+      const Catalog = (() => {
+        const unitCosts = {
+          DECK: 0.00,
+          DECK_BRDS: 3.25,
+          POST: 55.00,
+          RAIL: 38.00,
+          BAL: 3.00,
+          TREAD: 24.00,
+          BEAM: 42.00,
+          MISC: 10.00,
+          PH: 0.00
+        };
+        const uom = {
+          DECK:"ea", DECK_BRDS:"ea", POST:"ea", RAIL:"ea", BAL:"ea", TREAD:"ea", BEAM:"ea", MISC:"ea", PH:"ea"
+        };
+        function getUnitCost(code){ return unitCosts[code] ?? 0; }
+        function getUom(code){ return uom[code] ?? "ea"; }
+        return { getUnitCost, getUom };
+      })();
+
+      const Takeoff = {
+        build(){
+          const exp = Export.systemExport();
+          const map = new Map();
+          exp.objects.forEach(o=>{
+            const key = [o.objectType,o.material,o.costCode].join("|");
+            const prev = map.get(key) || { objectType:o.objectType, material:o.material, costCode:o.costCode, qty:0 };
+            prev.qty += 1;
+            map.set(key, prev);
+          });
+          const rows = Array.from(map.values()).map(r=>{
+            const unitCost = Catalog.getUnitCost(r.costCode);
+            const uom = Catalog.getUom(r.costCode);
+            const lineCost = unitCost * r.qty;
+            return Object.assign(r, { uom, unitCost:unitCost.toFixed(2), lineCost:lineCost.toFixed(2) });
+          });
+          rows.sort((a,b)=>a.costCode.localeCompare(b.costCode));
+          return rows;
+        },
+        render(){
+          const rows = this.build();
+          if(!rows.length){
+            document.getElementById("takeoffOut").innerHTML = "<div class='msg warn'>No exportable objects found.</div>";
+            return;
+          }
+          let html = "<table><thead><tr><th>Type</th><th>Material</th><th>Cost Code</th><th>Qty</th></tr></thead><tbody>";
+          rows.forEach(r=>{
+            html += "<tr><td>"+csvSafe(r.objectType)+"</td><td>"+csvSafe(r.material)+"</td><td>"+csvSafe(r.costCode)+"</td><td>"+r.qty+"</td></tr>";
+          });
+          html += "</tbody></table>";
+          document.getElementById("takeoffOut").innerHTML = html;
+        }
+      };
+
+      const Cost = {
+        compute(){
+          const rows = Takeoff.build();
+          const tax = (Number(document.getElementById("taxRate").value)||0)/100;
+          const margin = (Number(document.getElementById("marginRate").value)||0)/100;
+
+          let subtotal = 0;
+          const detailed = rows.map(r=>{
+            const unit = Number(r.unitCost)||0;
+            const qty = Number(r.qty)||0;
+            const line = unit*qty;
+            subtotal += line;
+            return Object.assign({}, r, { unitCostNum:unit, lineCostNum:line });
+          });
+
+          const marginAmt = subtotal * margin;
+          const taxedBase = subtotal + marginAmt;
+          const taxAmt = taxedBase * tax;
+          const total = taxedBase + taxAmt;
+
+          AppState.cost = { rows:detailed, subtotal, marginAmt, taxAmt, total };
+          return AppState.cost;
+        },
+        render(){
+          const c = this.compute();
+          let html = "<table><thead><tr><th>Cost Code</th><th>Qty</th><th>UOM</th><th>Unit</th><th>Line</th></tr></thead><tbody>";
+          c.rows.forEach(r=>{
+            html += "<tr><td>"+csvSafe(r.costCode)+"</td><td>"+r.qty+"</td><td>"+csvSafe(r.uom)+"</td><td>"+U.fmtMoney(r.unitCostNum)+"</td><td>"+U.fmtMoney(r.lineCostNum)+"</td></tr>";
+          });
+          html += "</tbody></table>";
+          html += "<div class='msg ok'><b>Subtotal:</b> "+U.fmtMoney(c.subtotal)+"<br/>"
+               +  "<b>Margin:</b> "+U.fmtMoney(c.marginAmt)+"<br/>"
+               +  "<b>Tax:</b> "+U.fmtMoney(c.taxAmt)+"<br/>"
+               +  "<b>Total:</b> "+U.fmtMoney(c.total)+"</div>";
+          document.getElementById("costOut").innerHTML = html;
+        },
+        exportCsv(){
+          const c = this.compute();
+          const head = ["costCode","qty","uom","unitCost","lineCost"];
+          const lines = [head.join(",")].concat(c.rows.map(r=>{
+            return [csvSafe(r.costCode), r.qty, csvSafe(r.uom), r.unitCostNum.toFixed(2), r.lineCostNum.toFixed(2)].join(",");
+          }));
+          lines.push("");
+          lines.push("Subtotal,,,"+c.subtotal.toFixed(2));
+          lines.push("Margin,,,"+c.marginAmt.toFixed(2));
+          lines.push("Tax,,,"+c.taxAmt.toFixed(2));
+          lines.push("Total,,,"+c.total.toFixed(2));
+          U.dlText("cost.csv", lines.join("\n"), "text/csv");
+          U.setStatus("Exported cost.csv");
+        }
+      };
+
+      /***********************
+       * Proposal
+       ***********************/
+      const Proposal = {
+        generate(){
+          const exp = Export.systemExport();
+          const cost = Cost.compute();
+          const p = {
+            meta: exp.meta,
+            totals: { subtotal: cost.subtotal, margin: cost.marginAmt, tax: cost.taxAmt, total: cost.total },
+            scope: Takeoff.build(),
+            notes: [
+              "Generated estimate based on modeled components.",
+              "Final pricing subject to field verification and selections."
+            ]
+          };
+          AppState.proposal = p;
+          return p;
+        },
+        render(){
+          const p = this.generate();
+          const html =
+            "<div class='msg ok'><b>Proposal Generated</b><br/>"
+            + "<div class='tiny'>Project: "+csvSafe(p.meta.projectName||"")+"</div>"
+            + "<div class='tiny'>Client: "+csvSafe(p.meta.clientName||"")+"</div>"
+            + "<div style='margin-top:6px;'><b>Total:</b> "+U.fmtMoney(p.totals.total)+"</div></div>"
+            + "<div class='section'>Scope (summary)</div>"
+            + "<div class='tiny'>Items: "+p.scope.length+"</div>";
+          document.getElementById("proposalOut").innerHTML = html;
+          UI.refreshCompiler();
+        },
+        exportJson(){
+          const p = AppState.proposal || this.generate();
+          U.dlText("proposal.json", JSON.stringify(p, null, 2), "application/json");
+          U.setStatus("Exported proposal.json");
+        },
+        exportCsv(){
+          const p = AppState.proposal || this.generate();
+          const head = ["objectType","material","costCode","qty"];
+          const lines = [head.join(",")].concat(p.scope.map(r=>{
+            return [csvSafe(r.objectType),csvSafe(r.material),csvSafe(r.costCode),r.qty].join(",");
+          }));
+          lines.push("");
+          lines.push("TOTAL,,,"+p.totals.total.toFixed(2));
+          U.dlText("proposal.csv", lines.join("\n"), "text/csv");
+          U.setStatus("Exported proposal.csv");
+        }
+      };
+
+      /***********************
+       * Validation + AutoFix
+       ***********************/
+      const Validation = {
+        run(){
+          const exp = Export.systemExport();
+          const msgs = [];
+          if(!exp.meta.projectName) msgs.push({t:"warn", m:"Project name is blank."});
+          if(!exp.meta.clientName) msgs.push({t:"warn", m:"Client name is blank."});
+          if(!exp.objects.length) msgs.push({t:"err", m:"No exportable objects found in scene."});
+          const bad = exp.objects.filter(o=>!o.costCode);
+          if(bad.length) msgs.push({t:"warn", m:"Some objects missing costCode: "+bad.length});
+          return msgs;
+        },
+        render(){
+          const msgs = this.run();
+          if(!msgs.length){
+            document.getElementById("validationOut").innerHTML = "<div class='msg ok'>No issues found.</div>";
+            return;
+          }
+          document.getElementById("validationOut").innerHTML = msgs.map(x=>{
+            const cls = x.t==="err" ? "err" : x.t==="warn" ? "warn" : "ok";
+            return "<div class='msg "+cls+"'>"+csvSafe(x.m)+"</div>";
+          }).join("");
+        }
+      };
+
+      const AutoFix = {
+        applySafe(){
+          if(!document.getElementById("dateField").value) document.getElementById("dateField").value = U.nowDate();
+          if(!document.getElementById("projectName").value) document.getElementById("projectName").value = "Project " + U.nowDate();
+          Validation.render();
+          Pipeline.run();
+          U.setStatus("AutoFix applied");
+        }
+      };
+
+      /***********************
+       * Assets + Flow + Loader
+       ***********************/
+      const Assets = {
+        loadPlaceholders(){
+          AppState.assets = [
+            { id:"railPanelA", name:"Rail Panel A", category:"structure", url:null },
+            { id:"postCap", name:"Post Cap", category:"structure", url:null },
+            { id:"kitchenBase", name:"Kitchen Base Cabinet", category:"kitchen", url:null },
+            { id:"bathVanity", name:"Bath Vanity", category:"bath", url:null },
+            { id:"pergola", name:"Pergola", category:"outdoor", url:null }
+          ];
+          AppState.catalogSource = "defaults";
+          UI.renderAssets();
+          U.setStatus("Loaded placeholder assets");
+        }
+      };
+
+      const Integrations = {
+        async sendToFlow(){
+          const url = (document.getElementById("flowUrl").value||"").trim();
+          if(!url){ alert("Paste your Flow HTTP trigger URL first."); return; }
+          const payload = Export.systemExport();
+          U.setStatus("Sending to Flow...");
+          try{
+            const res = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload) });
+            const text = await res.text().catch(()=>"(no body)");
+            if(!res.ok) throw new Error("HTTP "+res.status+": "+text);
+            U.setStatus("Flow OK");
+            alert("Flow response:\n"+text);
+          }catch(err){
+            console.error(err);
+            U.setStatus("Flow error");
+            alert("Flow error:\n"+String(err.message||err));
+          }
+        }
+      };
+
+      const Loader = {
+        open(){ document.getElementById("fileInput").click(); },
+        async handleFile(file){
+          try{
+            const text = await file.text();
+            const data = JSON.parse(text);
+            Viewer.clearRoot();
+            const group = new THREE.Group(); group.name="Imported"; Viewer.root.add(group);
+            const objs = data.objects || [];
+            objs.forEach((o, idx)=>{
+              const w = Number(o.width)||1, h = Number(o.height)||1, d = Number(o.depth)||1;
+              const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), Materials.get("trim"));
+              mesh.position.set(Number(o.x)||0, Number(o.y)||h/2, Number(o.z)||0);
+              mesh.castShadow = true; mesh.receiveShadow = true;
+              mesh.name = (o.objectType||"obj")+"_"+idx;
+              mesh.userData.exportable = Export.canonicalObject(o);
+              group.add(mesh);
+            });
+            Pipeline.run();
+            UI.refreshCompiler();
+            U.setStatus("Loaded JSON model");
+          }catch(err){
+            console.error(err);
+            alert("Failed to load JSON:\n"+String(err.message||err));
+          }
+        }
+      };
+
+      /***********************
+       * UI
+       ***********************/
+      const UI = {
+        init(){
+          document.getElementById("dateField").value = U.nowDate();
+
+          document.getElementById("btnUpdate3D").addEventListener("click", ()=>Viewer.updateScene());
+          document.getElementById("btnReset").addEventListener("click", ()=>Viewer.resetView());
+
+          document.getElementById("btnExportJson").addEventListener("click", ()=>Export.exportSystemJson());
+          document.getElementById("btnExportSummary").addEventListener("click", ()=>Export.exportSummaryCsv());
+          document.getElementById("btnExportTakeoff").addEventListener("click", ()=>Export.exportTakeoffCsv());
+          document.getElementById("btnExportGLB").addEventListener("click", ()=>Export.exportGLB());
+          document.getElementById("btnLoadJson").addEventListener("click", ()=>Loader.open());
+
+          document.getElementById("btnSendFlow").addEventListener("click", ()=>Integrations.sendToFlow());
+          document.getElementById("btnUseAssets").addEventListener("click", ()=>Assets.loadPlaceholders());
+
+          document.getElementById("btnValidate").addEventListener("click", ()=>Validation.render());
+          document.getElementById("btnAutoFix").addEventListener("click", ()=>AutoFix.applySafe());
+
+          document.getElementById("btnCostExport").addEventListener("click", ()=>Cost.exportCsv());
+
+          document.getElementById("btnProposalGen").addEventListener("click", ()=>Proposal.render());
+          document.getElementById("btnProposalJson").addEventListener("click", ()=>Proposal.exportJson());
+          document.getElementById("btnProposalCsv").addEventListener("click", ()=>Proposal.exportCsv());
+          document.getElementById("btnProposalPng").addEventListener("click", async ()=>{
+            U.setStatus("Rendering PNG...");
+            const url = await Viewer.capturePng({width:2560,height:1440});
+            U.dlDataUrl("proposal_render.png", url);
+            U.setStatus("Saved proposal_render.png");
+          });
+
+          document.getElementById("btnCopyExport").addEventListener("click", async ()=>{
+            const text = JSON.stringify(Export.systemExport(), null, 2);
+            try{ await navigator.clipboard.writeText(text); U.setStatus("Copied SYSTEM_EXPORT"); }
+            catch{ U.setStatus("Copy failed"); alert("Copy failed. You can manually copy from the Compiler box."); }
+          });
+
+          // Add buttons
+          document.getElementById("btnAddPost").addEventListener("click", ()=>AddObject.add("post"));
+          document.getElementById("btnAddBeam").addEventListener("click", ()=>AddObject.add("beam"));
+          document.getElementById("btnAddRailing").addEventListener("click", ()=>AddObject.add("railing"));
+          document.getElementById("btnAddBox").addEventListener("click", ()=>AddObject.add("box"));
+
+          document.getElementById("btnDeleteSel").addEventListener("click", ()=>{
+            if(AppState.selection && AppState.selection.parent){
+              AppState.selection.parent.remove(AppState.selection);
+              AppState.selection = null;
+              UI.updateSelection();
+              Pipeline.run();
+              U.setStatus("Deleted selection");
+            }
+          });
+          document.getElementById("btnFocusSel").addEventListener("click", ()=>Viewer.focusOn(AppState.selection || Viewer.root));
+
+          // Tabs
+          document.querySelectorAll(".tab").forEach(t=>{
+            t.addEventListener("click", ()=>UI.setTab(t.dataset.tab));
+          });
+
+          // Tools
+          document.getElementById("toolSelect").addEventListener("click", ()=>UI.setTool("select"));
+          document.getElementById("toolMove").addEventListener("click", ()=>UI.setTool("move"));
+          document.getElementById("toolMeasure").addEventListener("click", ()=>UI.setTool("measure"));
+
+          document.getElementById("btnSnap").addEventListener("click", ()=>{
+            AppState.snap = !AppState.snap;
+            document.getElementById("btnSnap").textContent = AppState.snap ? "Snap ON" : "Snap OFF";
+            U.setStatus("Snap: " + (AppState.snap ? "ON" : "OFF"));
+          });
+
+          document.getElementById("btnQuality").addEventListener("click", ()=>{
+            const next = AppState.quality === "presentation" ? "draft" : "presentation";
+            Viewer.setQuality(next);
+            document.getElementById("btnQuality").textContent = next === "presentation" ? "Presentation" : "Draft";
+            document.getElementById("btnQuality").classList.toggle("active", next==="presentation");
+          });
+
+          document.getElementById("btnHdr").addEventListener("click", ()=>Viewer.tryHDR());
+          document.getElementById("btnRecalc").addEventListener("click", ()=>Pipeline.run());
+
+          // Assets search/filter
+          document.getElementById("assetSearch").addEventListener("input", ()=>UI.renderAssets());
+          document.getElementById("assetFilter").addEventListener("change", ()=>UI.renderAssets());
+
+          // File input
+          document.getElementById("fileInput").addEventListener("change", (e)=>{
+            const file = e.target.files && e.target.files[0];
+            if(file) Loader.handleFile(file);
+            e.target.value = "";
+          });
+
+          UI.renderAssets();
+          UI.refreshCompiler();
+        },
+
+        setTab(tab){
+          document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
+          ["inspector","validation","takeoff","cost","proposal","assets","compiler"].forEach(k=>{
+            document.getElementById("tab-"+k).classList.toggle("hidden", k!==tab);
+          });
+          if(tab==="validation") Validation.render();
+          if(tab==="takeoff") Takeoff.render();
+          if(tab==="cost") Cost.render();
+          if(tab==="compiler") UI.refreshCompiler();
+          if(tab==="assets") UI.renderAssets();
+        },
+
+        setTool(tool){
+          AppState.tool = tool;
+          document.getElementById("toolSelect").classList.toggle("active", tool==="select");
+          document.getElementById("toolMove").classList.toggle("active", tool==="move");
+          document.getElementById("toolMeasure").classList.toggle("active", tool==="measure");
+          U.setStatus("Tool: " + tool);
+        },
+
+        readDeckParams(){
+          return {
+            lengthFt: Number(document.getElementById("deckLength").value)||16,
+            widthFt: Number(document.getElementById("deckWidth").value)||12,
+            heightFt: Number(document.getElementById("deckHeight").value)||3,
+            stairOpeningFt: Number(document.getElementById("stairOpening").value)||4,
+            stairCount: Number(document.getElementById("stairCount").value)||3,
+            stairWidthFt: Number(document.getElementById("stairWidth").value)||4
+          };
+        },
+
+        updateSelection(){
+          const s = AppState.selection;
+          document.getElementById("selName").textContent = s ? (s.name || s.userData.exportable?.objectType || "mesh") : "none";
+          if(!s){
+            document.getElementById("selProps").textContent = "—";
+            return;
+          }
+          const e = s.userData.exportable || {};
+          const lines = [
+            ["Type", e.objectType || ""],
+            ["Cost Code", e.costCode || ""],
+            ["Material", e.material || ""],
+            ["Position (m)", `(${s.position.x.toFixed(2)}, ${s.position.y.toFixed(2)}, ${s.position.z.toFixed(2)})`],
+            ["Size (m)", `(${(e.width||0).toFixed(2)}, ${(e.height||0).toFixed(2)}, ${(e.depth||0).toFixed(2)})`]
+          ];
+          document.getElementById("selProps").innerHTML = lines.map(([k,v])=>"<div><b>"+csvSafe(k)+":</b> "+csvSafe(v)+"</div>").join("");
+        },
+
+        renderAssets(){
+          const q = (document.getElementById("assetSearch").value||"").trim().toLowerCase();
+          const f = document.getElementById("assetFilter").value;
+          const list = (AppState.assets||[]).filter(a=>{
+            const okQ = !q || (a.name||"").toLowerCase().includes(q) || (a.category||"").toLowerCase().includes(q);
+            const okF = (f==="all") || a.category===f;
+            return okQ && okF;
+          });
+          const grid = document.getElementById("assetGrid");
+          if(!list.length){
+            grid.innerHTML = "<div class='msg warn'>No assets loaded. Click “Load Placeholder Assets”.</div>";
+            return;
+          }
+          grid.innerHTML = list.map(a=>{
+            return "<div class='asset' data-id='"+csvSafe(a.id)+"'>"
+              + "<div class='thumb'>GLB</div>"
+              + "<div class='name'>"+csvSafe(a.name)+"</div>"
+              + "<div class='cat'>"+csvSafe(a.category)+"</div>"
+              + "</div>";
+          }).join("");
+
+          grid.querySelectorAll(".asset").forEach(el=>{
+            el.addEventListener("click", ()=>alert("Asset placement hook.\nNext step: load GLB via URL and place with snapping rules."));
+          });
+        },
+
+        refreshCompiler(){
+          document.getElementById("compilerOut").value = JSON.stringify(Export.systemExport(), null, 2);
+        }
+      };
+
+      /***********************
+       * Pipeline
+       ***********************/
+      const Pipeline = {
+        run(){
+          Takeoff.render();
+          Cost.render();
+          Validation.render();
+          UI.refreshCompiler();
+        }
+      };
+
+      /***********************
+       * Boot (FIXED ORDER)
+       ***********************/
+      (function(){
+        U.setStatus("Booting…");
+        Viewer.init();      // viewer first (prevents blank/cascading failures)
+        UI.init();
+        UI.setTool("select");
+        UI.setTab("inspector");
+        U.setStatus("Ready");
+      })();
+    </script>
+  </body>
+  </html>
